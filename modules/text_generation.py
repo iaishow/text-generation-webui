@@ -238,30 +238,42 @@ def stop_everything_event():
     shared.stop_everything = True
 
 
+# def apply_stopping_strings(reply, all_stop_strings):
+#     stop_found = False
+#     for string in all_stop_strings:
+#         idx = reply.find(string)
+#         if idx != -1:
+#             reply = reply[:idx]
+#             stop_found = True
+#             break
+
+#     if not stop_found:
+#         # If something like "\nYo" is generated just before "\nYou:"
+#         # is completed, trim it
+#         for string in all_stop_strings:
+#             for j in range(len(string) - 1, 0, -1):
+#                 if reply[-j:] == string[:j]:
+#                     reply = reply[:-j]
+#                     break
+#             else:
+#                 continue
+
+#             break
+
+#     return reply, stop_found
+
+### regexp stop strings
 def apply_stopping_strings(reply, all_stop_strings):
     stop_found = False
     for string in all_stop_strings:
-        idx = reply.find(string)
-        if idx != -1:
-            reply = reply[:idx]
+        searchObj = re.search(string,reply, re.M|re.I)
+        if searchObj:
+            (idx,eidx)=searchObj.span()
             stop_found = True
             break
-
-    if not stop_found:
-        # If something like "\nYo" is generated just before "\nYou:"
-        # is completed, trim it
-        for string in all_stop_strings:
-            for j in range(len(string) - 1, 0, -1):
-                if reply[-j:] == string[:j]:
-                    reply = reply[:-j]
-                    break
-            else:
-                continue
-
-            break
-
+    if stop_found and shared.args.verbose:
+        print("<STOP> ",reply,all_stop_strings)
     return reply, stop_found
-
 
 def get_reply_from_output_ids(output_ids, state, starting_from=0):
     reply = decode(output_ids[starting_from:], state['skip_special_tokens'])
